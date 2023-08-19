@@ -3,6 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs')
+const userModel = require("../models/user");
+const helper = require("../helper/helper");
 const createError = require('http-errors');
 const responseFormat = require('response-format');
 const multer  = require('multer')
@@ -17,28 +19,17 @@ const storage = multer.diskStorage({
 
 const uploadAny = multer({storage: storage}).any();
 
-const jwtKey = process.env.JWT_KEY;
-
-const userModel = require("../models/user");
-const helper = require("../helper/helper");
-
-
 router.post('/signin', async function(req, res, next) {
   try {
     const email = req.body.email;
     const password = req.body.password;
     const db = req.headers.schema_name;
 
-    console.log(email);
-    console.log(db);
-
     const getUser = await userModel.getUserByUsername(db,email);
-    console.log(getUser);
 
     if(getUser != null){
 
       const isAuthenticated = await userModel.authentication(password, getUser.password)
-      console.log("authentication "+isAuthenticated)
 
       if (isAuthenticated){
         res.send(responseFormat.success("Successfully login", helper.deleteFromObject('password',getUser)))
